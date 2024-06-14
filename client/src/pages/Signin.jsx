@@ -1,12 +1,15 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react';
+import { signInstart,signInsuccess,signInfailure } from '../redux/user/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 export const Signin = () => {
   const [formData,setFormData] = useState({});
-  const [err, setError] = useState(false);
-  const [loading,setloading] = useState(false);
+  const {loading,error } = useSelector((state)=>state.user);
+  console.log(error);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleChange = (e)=>{
     setFormData({...formData, [e.target.id]: e.target.value});
   }
@@ -14,8 +17,7 @@ export const Signin = () => {
     e.preventDefault();
     
     try {
-      setloading(true);
-      setError(false);
+      dispatch(signInstart());
       const res = await fetch('api/auth/signin', {
         method: 'POST',
         headers: {
@@ -24,17 +26,16 @@ export const Signin = () => {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(data);
-      setloading(false);
+      
       if(data.success === false){
-        setError(true);
+        dispatch(signInfailure(data));
         return;
       }
+      dispatch(signInsuccess(data));
       navigate('/');
     } catch (error) {
-      setloading(false);
-      setError(true);
-      console.error('Error:', error);
+      dispatch(signInfailure(error));
+      
     }
   };
   return (
@@ -56,15 +57,15 @@ export const Signin = () => {
         onChange = {handleChange}/>
 
         <button disabled = {loading} className = 'bg-slate-700 text-white p-3 rounded-lg uppercase hover: opacity-95' >
-          {loading? 'Loading...': 'Sign Up'}</button>
+          {loading? 'Loading...': 'Sign in'}</button>
       </form>
       <div className="flex gap-2 mt-5">
         <p>Dont Have an account?</p>
         <Link to ='/sign-up '>
-          <span className = 'text-blue-500'>SignUp</span>
+          <span className = 'text-blue-500'>Sign Up</span>
         </Link>
       </div>
-      <p className='text-red-600 mt-4'>{err && 'Something wrong'}</p>
+      <p className='text-red-600 mt-4'>{error ? error.error || 'Something wrong': ''}</p>
     </div>
   );
 };
