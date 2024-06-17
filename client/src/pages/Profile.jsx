@@ -14,11 +14,10 @@ export const Profile = () => {
   const [imageerr,setImageErr] = useState(false);
   const [formData,setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
-  //  console.log(image);
-  //  console.log(imageperc);
-  // console.log(formData);
-
+  
+  const dispatch = useDispatch();
   const { currentUser,loading,error} = useSelector((state)=> state.user);
+  
   useEffect(()=>{
     if(image){
       handleFileUpload(image);
@@ -29,7 +28,7 @@ export const Profile = () => {
     const filename = new Date().getTime() + image.name;
     const storageRef = ref(storage,filename);
     const uploadTask = uploadBytesResumable(storageRef,image);
-    const dispatch = useDispatch();
+    
     uploadTask.on(
       'state_changed',
       (snapshot)=>{
@@ -47,13 +46,14 @@ export const Profile = () => {
     );
   };
   const handleChange = (e)=>{
-    setFormData({...formData,[e.target.id]:e.target.value});
+    setFormData({ ...formData,[e.target.id]:e.target.value});
   }
+  
   const handleSubmit = async (e)=>{
     e.preventDefault();
     try{
       dispatch(updateUserStart());
-      const res = fetch(`/api/user/update/${currentUser._id}`,{
+      const res = await fetch(`/api/user/update/${currentUser._id}`,{
         method: 'POST',
         headers :{
           'Content-Type':'application/json',
@@ -71,7 +71,7 @@ export const Profile = () => {
     }catch(error){
         dispatch(updateUserFailure(error));
     }
-  }
+  };
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7 '>Profile</h1>
